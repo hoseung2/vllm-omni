@@ -248,8 +248,7 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
             self._max_uploaded_speakers = 1000
         _policy = os.environ.get("SPEAKER_REGISTRATION_POLICY", "overwrite").lower()
         if _policy not in ("overwrite", "immutable"):
-            logger.warning("Invalid SPEAKER_REGISTRATION_POLICY=%r; using 'overwrite'", _policy)
-            _policy = "overwrite"
+            raise ValueError(f"Invalid SPEAKER_REGISTRATION_POLICY={_policy!r}; expected 'overwrite' or 'immutable'.")
         self._registration_policy = _policy
         self.uploaded_speakers: dict[str, dict[str, Any]] = {}
         self._ref_audio_data_url_cache: dict[str, str] = {}
