@@ -291,8 +291,9 @@ Fields `ref_text` and `speaker_description` are omitted when not provided at upl
 
 **Naming rules:**
 
-- Names that collide with one of the model's built-in or precomputed voices are rejected (400); an
-  upload can never replace a built-in voice.
+- Names that collide with one of the model's built-in or precomputed voices are rejected (400). Voice
+  files already on disk under such a name are ignored at startup with a warning, so an upload can never
+  shadow a built-in voice.
 - Re-uploading an existing uploaded name overwrites it in place (the previous audio file is
   deleted). Set `VLLM_OMNI_SPEAKER_REGISTRATION_POLICY=immutable` on the server to reject duplicates instead,
   requiring an explicit `DELETE /v1/audio/voices/{name}` before re-registering — useful when the

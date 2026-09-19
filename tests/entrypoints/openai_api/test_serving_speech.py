@@ -560,6 +560,20 @@ class TestSpeechAPI:
                 engine_client=engine_client, models=mocker.MagicMock(), request_logger=mocker.MagicMock()
             )
 
+    def test_restored_upload_shadowing_builtin_is_dropped(self, client):
+        """A pre-guard upload restored under a built-in name must not keep shadowing it."""
+        handler = client.app.state.openai_serving_speech
+        handler._adapter.capabilities.supported_speakers = {"vivian"}
+        handler._adapter.capabilities.precomputed_speakers = {}
+        handler.uploaded_speakers["vivian"] = {"name": "vivian", "file_path": "/tmp/vivian.safetensors"}
+        handler.uploaded_speakers["keep_me"] = {"name": "keep_me", "file_path": "/tmp/keep_me.safetensors"}
+
+        handler._drop_shadowing_uploads()
+
+        assert "vivian" not in handler.uploaded_speakers
+        assert "keep_me" in handler.uploaded_speakers
+        handler.uploaded_speakers.pop("keep_me")
+
     def test_upload_voice_with_ref_text(self, client, tmp_path):
         """Test voice upload with ref_text enables in-context cloning."""
         audio_content = b"fake audio content" * 1000

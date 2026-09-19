@@ -416,6 +416,7 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
         adapter = self._adapter
         if adapter is not None:
             adapter.load_capabilities()
+            self._drop_shadowing_uploads()
         available_speakers = self._get_available_speakers()
         logger.info("Loaded %d supported speakers: %s", len(available_speakers), sorted(available_speakers))
 
@@ -454,6 +455,7 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
             ctx = SpeechServingContext(server=self, engine_client=self.engine_client)
             self._adapter = adapter_cls(ctx)
             self._adapter.load_capabilities()
+            self._drop_shadowing_uploads()
         return self._adapter
 
     def _uses_native_speed_control(self) -> bool:
@@ -808,6 +810,23 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
                 f"Delete an existing voice before registering a new one, or raise "
                 f"the cap via SPEAKER_MAX_UPLOADED."
             )
+
+    def _drop_shadowing_uploads(self) -> None:
+        """Uploads are restored from disk before the adapter exists, so a name
+        registered under a built-in speaker before the collision guard would
+        keep shadowing it across restarts. Drop such entries from the registry;
+        the file stays on disk for the operator to remove."""
+        caps = self._adapter.capabilities if self._adapter is not None else None
+        if caps is None:
+            return
+        for voice_name_lower in list(self.uploaded_speakers):
+            if voice_name_lower in caps.supported_speakers or voice_name_lower in caps.precomputed_speakers:
+                info = self.uploaded_speakers.pop(voice_name_lower)
+                logger.warning(
+                    "Uploaded voice %r shadows a built-in speaker and is ignored; remove %s to clear this warning.",
+                    voice_name_lower,
+                    info.get("file_path"),
+                )
 
     def _check_registration_allowed(self, voice_name_lower: str, name: str) -> None:
         """Reject names that would shadow a built-in voice or, under the
