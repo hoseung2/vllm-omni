@@ -246,9 +246,11 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
         except ValueError:
             logger.warning("Invalid SPEAKER_MAX_UPLOADED=%r; using default 1000", _raw_cap)
             self._max_uploaded_speakers = 1000
-        _policy = os.environ.get("SPEAKER_REGISTRATION_POLICY", "overwrite").lower()
+        _policy = os.environ.get("VLLM_OMNI_SPEAKER_REGISTRATION_POLICY", "overwrite").lower()
         if _policy not in ("overwrite", "immutable"):
-            raise ValueError(f"Invalid SPEAKER_REGISTRATION_POLICY={_policy!r}; expected 'overwrite' or 'immutable'.")
+            raise ValueError(
+                f"Invalid VLLM_OMNI_SPEAKER_REGISTRATION_POLICY={_policy!r}; expected 'overwrite' or 'immutable'."
+            )
         self._registration_policy = _policy
         self.uploaded_speakers: dict[str, dict[str, Any]] = {}
         self._ref_audio_data_url_cache: dict[str, str] = {}
@@ -819,7 +821,7 @@ class OmniOpenAIServingSpeech(OpenAIServing, AudioMixin):
             )
         if self._registration_policy == "immutable" and voice_name_lower in self.uploaded_speakers:
             raise ValueError(
-                f"Voice '{name}' already exists and SPEAKER_REGISTRATION_POLICY is 'immutable'; "
+                f"Voice '{name}' already exists and VLLM_OMNI_SPEAKER_REGISTRATION_POLICY is 'immutable'; "
                 f"delete it first via DELETE /v1/audio/voices/{name}."
             )
 

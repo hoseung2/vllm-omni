@@ -294,7 +294,7 @@ Fields `ref_text` and `speaker_description` are omitted when not provided at upl
 - Names that collide with one of the model's built-in or precomputed voices are rejected (400); an
   upload can never replace a built-in voice.
 - Re-uploading an existing uploaded name overwrites it in place (the previous audio file is
-  deleted). Set `SPEAKER_REGISTRATION_POLICY=immutable` on the server to reject duplicates instead,
+  deleted). Set `VLLM_OMNI_SPEAKER_REGISTRATION_POLICY=immutable` on the server to reject duplicates instead,
   requiring an explicit `DELETE /v1/audio/voices/{name}` before re-registering — useful when the
   endpoint is reachable by multiple writers and silent overwrites are a risk.
 - The voice registry has no per-user ownership: any client that can reach the endpoint can
@@ -580,6 +580,7 @@ by `GET /v1/audio/voices`. Valid precomputed voices can be used in
 | ---------- | --------- | ------------- |
 | `SPEAKER_SAMPLES_DIR` | `~/.cache/vllm-omni/speakers` | Directory for persisted uploaded speakers (`.safetensors` files). |
 | `SPEAKER_MAX_UPLOADED` | `1000` | Maximum number of uploaded speakers kept on disk. Upload requests past the cap return 400. |
+| `VLLM_OMNI_SPEAKER_REGISTRATION_POLICY` | `overwrite` | `immutable` rejects re-uploading an existing uploaded name (400) until it is deleted; any other value fails startup. |
 
 The in-memory LRU has a fixed 512 MiB byte budget.
 

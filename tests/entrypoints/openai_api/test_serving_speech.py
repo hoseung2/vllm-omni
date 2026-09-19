@@ -531,7 +531,7 @@ class TestSpeechAPI:
         client.delete("/v1/audio/voices/test_voice_ow")
 
     def test_upload_voice_immutable_policy_requires_delete(self, client):
-        """SPEAKER_REGISTRATION_POLICY=immutable rejects duplicates until deleted."""
+        """VLLM_OMNI_SPEAKER_REGISTRATION_POLICY=immutable rejects duplicates until deleted."""
         handler = client.app.state.openai_serving_speech
         handler._registration_policy = "immutable"
         try:
@@ -550,12 +550,12 @@ class TestSpeechAPI:
             client.delete("/v1/audio/voices/test_voice_imm")
 
     def test_invalid_registration_policy_fails_startup(self, mocker, monkeypatch, tmp_path):
-        """An unknown SPEAKER_REGISTRATION_POLICY is a configuration error, not a silent fallback."""
+        """An unknown VLLM_OMNI_SPEAKER_REGISTRATION_POLICY is a configuration error, not a silent fallback."""
         monkeypatch.setenv("SPEAKER_SAMPLES_DIR", str(tmp_path))
-        monkeypatch.setenv("SPEAKER_REGISTRATION_POLICY", "append")
+        monkeypatch.setenv("VLLM_OMNI_SPEAKER_REGISTRATION_POLICY", "append")
         engine_client = mocker.MagicMock()
         engine_client.default_sampling_params_list = [{}]
-        with pytest.raises(ValueError, match="SPEAKER_REGISTRATION_POLICY"):
+        with pytest.raises(ValueError, match="VLLM_OMNI_SPEAKER_REGISTRATION_POLICY"):
             OmniOpenAIServingSpeech(
                 engine_client=engine_client, models=mocker.MagicMock(), request_logger=mocker.MagicMock()
             )
